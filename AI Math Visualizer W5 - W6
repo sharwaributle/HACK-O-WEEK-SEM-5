@@ -1,0 +1,1419 @@
+import tkinter as tk
+from tkinter import messagebox
+import numpy as np
+import sympy as sp
+
+
+# ============================================================
+# APPLICATION SETTINGS
+# ============================================================
+
+APP_TITLE = "MathLab AI - Mathematical Explorer"
+
+BG = "#F8FAFC"
+NAVY = "#172554"
+PURPLE = "#7C3AED"
+PURPLE_LIGHT = "#EDE9FE"
+CYAN = "#0891B2"
+CYAN_LIGHT = "#CFFAFE"
+WHITE = "#FFFFFF"
+TEXT = "#1E293B"
+MUTED = "#64748B"
+RED = "#DC2626"
+BORDER = "#E2E8F0"
+
+
+# ============================================================
+# MATHEMATICAL ENGINE
+# ============================================================
+
+class MathEngine:
+
+    @staticmethod
+    def vector_calculation(a, b):
+
+        addition = a + b
+        dot_product = np.dot(a, b)
+
+        magnitude_a = np.linalg.norm(a)
+        magnitude_b = np.linalg.norm(b)
+
+        return addition, dot_product, magnitude_a, magnitude_b
+
+    @staticmethod
+    def matrix_product(a, b):
+
+        return np.matmul(a, b)
+
+    @staticmethod
+    def eigen_calculation(matrix):
+
+        return np.linalg.eig(matrix)
+
+    @staticmethod
+    def derivative(function):
+
+        x = sp.symbols("x")
+
+        expression = sp.sympify(function)
+
+        return expression, sp.diff(expression, x)
+
+    @staticmethod
+    def gradient(function):
+
+        x, y = sp.symbols("x y")
+
+        expression = sp.sympify(function)
+
+        dx = sp.diff(expression, x)
+        dy = sp.diff(expression, y)
+
+        return expression, dx, dy
+
+
+# ============================================================
+# MAIN WINDOW
+# ============================================================
+
+root = tk.Tk()
+
+root.title(APP_TITLE)
+root.geometry("1200x750")
+root.minsize(1050, 680)
+root.configure(bg=BG)
+
+
+# ============================================================
+# GENERAL HELPERS
+# ============================================================
+
+def clear_page():
+
+    for widget in page_area.winfo_children():
+        widget.destroy()
+
+
+def heading(title, subtitle):
+
+    tk.Label(
+        page_area,
+        text=title,
+        font=("Segoe UI", 24, "bold"),
+        bg=BG,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        pady=(8, 2)
+    )
+
+    tk.Label(
+        page_area,
+        text=subtitle,
+        font=("Segoe UI", 10),
+        bg=BG,
+        fg=MUTED
+    ).pack(
+        anchor="w",
+        pady=(0, 18)
+    )
+
+
+def card(parent, width=None):
+
+    frame = tk.Frame(
+        parent,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    if width:
+        frame.config(width=width)
+
+    return frame
+
+
+def output_box(parent, text=""):
+
+    result = tk.Label(
+        parent,
+        text=text,
+        font=("Consolas", 11),
+        bg="#F8FAFC",
+        fg=TEXT,
+        justify="left",
+        anchor="nw",
+        padx=20,
+        pady=18
+    )
+
+    result.pack(
+        fill="both",
+        expand=True,
+        padx=18,
+        pady=18
+    )
+
+    return result
+
+
+def action_button(parent, text, command, color=PURPLE):
+
+    return tk.Button(
+        parent,
+        text=text,
+        command=command,
+        font=("Segoe UI", 10, "bold"),
+        bg=color,
+        fg=WHITE,
+        activebackground=color,
+        activeforeground=WHITE,
+        relief="flat",
+        bd=0,
+        padx=22,
+        pady=10,
+        cursor="hand2"
+    )
+
+
+def input_box(parent, default=""):
+
+    entry = tk.Entry(
+        parent,
+        font=("Segoe UI", 13),
+        bg=WHITE,
+        fg=TEXT,
+        relief="solid",
+        bd=1,
+        width=8
+    )
+
+    entry.insert(0, default)
+
+    return entry
+
+
+# ============================================================
+# DASHBOARD
+# ============================================================
+
+def dashboard():
+
+    clear_page()
+
+    heading(
+        "Mathematical Explorer",
+        "Interactive mathematics toolkit for Artificial Intelligence"
+    )
+
+    # --------------------------------------------------------
+    # STAT CARDS
+    # --------------------------------------------------------
+
+    stats = tk.Frame(
+        page_area,
+        bg=BG
+    )
+
+    stats.pack(
+        fill="x",
+        pady=(0, 20)
+    )
+
+    stat_data = [
+        ("LINEAR ALGEBRA", "03", PURPLE),
+        ("CALCULUS", "02", CYAN),
+        ("AI CONCEPTS", "06", "#C2410C"),
+        ("TOOLS", "Python", "#BE185D")
+    ]
+
+    for title_text, value, color in stat_data:
+
+        box = card(stats)
+
+        box.pack(
+            side="left",
+            fill="both",
+            expand=True,
+            padx=6
+        )
+
+        tk.Label(
+            box,
+            text=title_text,
+            font=("Segoe UI", 9, "bold"),
+            bg=WHITE,
+            fg=MUTED
+        ).pack(
+            anchor="w",
+            padx=18,
+            pady=(15, 2)
+        )
+
+        tk.Label(
+            box,
+            text=value,
+            font=("Segoe UI", 20, "bold"),
+            bg=WHITE,
+            fg=color
+        ).pack(
+            anchor="w",
+            padx=18,
+            pady=(0, 15)
+        )
+
+    # --------------------------------------------------------
+    # INTRODUCTION
+    # --------------------------------------------------------
+
+    intro = card(page_area)
+
+    intro.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        intro,
+        text="What can you explore?",
+        font=("Segoe UI", 17, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        padx=25,
+        pady=(22, 12)
+    )
+
+    topics = [
+        (
+            "Vectors",
+            "Addition, dot product and vector magnitude."
+        ),
+        (
+            "Matrices",
+            "Perform matrix multiplication using NumPy."
+        ),
+        (
+            "Eigenvalues",
+            "Explore eigenvalues and eigenvectors."
+        ),
+        (
+            "Derivatives",
+            "Calculate symbolic derivatives with SymPy."
+        ),
+        (
+            "Gradients",
+            "Understand partial derivatives and gradients."
+        ),
+        (
+            "Backpropagation",
+            "See the mathematical idea behind chain rule."
+        )
+    ]
+
+    for name, description in topics:
+
+        row = tk.Frame(
+            intro,
+            bg=WHITE
+        )
+
+        row.pack(
+            fill="x",
+            padx=25,
+            pady=5
+        )
+
+        tk.Label(
+            row,
+            text=name,
+            font=("Segoe UI", 10, "bold"),
+            bg=PURPLE_LIGHT,
+            fg=PURPLE,
+            width=17,
+            anchor="w",
+            padx=10,
+            pady=6
+        ).pack(
+            side="left"
+        )
+
+        tk.Label(
+            row,
+            text=description,
+            font=("Segoe UI", 10),
+            bg=WHITE,
+            fg=MUTED
+        ).pack(
+            side="left",
+            padx=14
+        )
+
+
+# ============================================================
+# VECTOR PAGE
+# ============================================================
+
+def vector_page():
+
+    clear_page()
+
+    heading(
+        "Vector Laboratory",
+        "Calculate vector addition, dot product and magnitude"
+    )
+
+    workspace = tk.Frame(
+        page_area,
+        bg=BG
+    )
+
+    workspace.pack(
+        fill="both",
+        expand=True
+    )
+
+    # --------------------------------------------------------
+    # INPUT PANEL
+    # --------------------------------------------------------
+
+    inputs = card(workspace)
+
+    inputs.pack(
+        side="left",
+        fill="y",
+        padx=(0, 10)
+    )
+
+    tk.Label(
+        inputs,
+        text="VECTOR INPUT",
+        font=("Segoe UI", 11, "bold"),
+        bg=WHITE,
+        fg=PURPLE
+    ).pack(
+        pady=(25, 18),
+        padx=30
+    )
+
+    entries = {}
+
+    for vector_name, color in [
+        ("Vector A", PURPLE),
+        ("Vector B", CYAN)
+    ]:
+
+        tk.Label(
+            inputs,
+            text=vector_name,
+            font=("Segoe UI", 13, "bold"),
+            bg=WHITE,
+            fg=color
+        ).pack(
+            pady=(8, 5)
+        )
+
+        row = tk.Frame(
+            inputs,
+            bg=WHITE
+        )
+
+        row.pack(pady=5)
+
+        x_entry = input_box(
+            row,
+            "3" if vector_name == "Vector A" else "2"
+        )
+
+        y_entry = input_box(
+            row,
+            "4" if vector_name == "Vector A" else "1"
+        )
+
+        x_entry.pack(
+            side="left",
+            padx=4
+        )
+
+        y_entry.pack(
+            side="left",
+            padx=4
+        )
+
+        entries[vector_name] = (x_entry, y_entry)
+
+    def calculate():
+
+        try:
+
+            ax, ay = entries["Vector A"]
+            bx, by = entries["Vector B"]
+
+            A = np.array([
+                float(ax.get()),
+                float(ay.get())
+            ])
+
+            B = np.array([
+                float(bx.get()),
+                float(by.get())
+            ])
+
+            addition, dot, mag_a, mag_b = (
+                MathEngine.vector_calculation(A, B)
+            )
+
+            result.config(
+                text=(
+                    "VECTOR RESULT\n"
+                    "────────────────────────\n\n"
+                    f"A + B = {addition}\n\n"
+                    f"A · B = {dot:.2f}\n\n"
+                    f"|A| = {mag_a:.2f}\n\n"
+                    f"|B| = {mag_b:.2f}\n"
+                )
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Input Error",
+                "Please enter numeric values."
+            )
+
+    action_button(
+        inputs,
+        "CALCULATE VECTOR",
+        calculate
+    ).pack(
+        pady=25
+    )
+
+    # --------------------------------------------------------
+    # RESULT PANEL
+    # --------------------------------------------------------
+
+    result_card = card(workspace)
+
+    result_card.pack(
+        side="right",
+        fill="both",
+        expand=True,
+        padx=(10, 0)
+    )
+
+    tk.Label(
+        result_card,
+        text="RESULT",
+        font=("Segoe UI", 12, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        padx=22,
+        pady=(20, 0)
+    )
+
+    result = output_box(
+        result_card,
+        "Enter values and press Calculate."
+    )
+
+
+# ============================================================
+# MATRIX PAGE
+# ============================================================
+
+def matrix_page():
+
+    clear_page()
+
+    heading(
+        "Matrix Workspace",
+        "Multiply two 2 × 2 matrices using NumPy"
+    )
+
+    container = tk.Frame(
+        page_area,
+        bg=BG
+    )
+
+    container.pack(
+        fill="both",
+        expand=True
+    )
+
+    left = card(container)
+
+    left.pack(
+        side="left",
+        fill="y",
+        padx=(0, 10)
+    )
+
+    right = card(container)
+
+    right.pack(
+        side="right",
+        fill="both",
+        expand=True,
+        padx=(10, 0)
+    )
+
+    def create_matrix(parent, title_text, defaults):
+
+        tk.Label(
+            parent,
+            text=title_text,
+            font=("Segoe UI", 13, "bold"),
+            bg=WHITE,
+            fg=PURPLE
+        ).pack(
+            pady=(25, 12)
+        )
+
+        fields = []
+
+        grid = tk.Frame(
+            parent,
+            bg=WHITE
+        )
+
+        grid.pack(
+            padx=25,
+            pady=10
+        )
+
+        for i in range(2):
+
+            row = []
+
+            for j in range(2):
+
+                entry = input_box(
+                    grid,
+                    str(defaults[i][j])
+                )
+
+                entry.grid(
+                    row=i,
+                    column=j,
+                    padx=5,
+                    pady=5
+                )
+
+                row.append(entry)
+
+            fields.append(row)
+
+        return fields
+
+    matrix_a = create_matrix(
+        left,
+        "MATRIX A",
+        [[1, 2], [2, 3]]
+    )
+
+    matrix_b = create_matrix(
+        left,
+        "MATRIX B",
+        [[5, 6], [6, 7]]
+    )
+
+    def multiply():
+
+        try:
+
+            A = np.array([
+                [
+                    float(matrix_a[i][j].get())
+                    for j in range(2)
+                ]
+                for i in range(2)
+            ])
+
+            B = np.array([
+                [
+                    float(matrix_b[i][j].get())
+                    for j in range(2)
+                ]
+                for i in range(2)
+            ])
+
+            C = MathEngine.matrix_product(A, B)
+
+            result.config(
+                text=(
+                    "MATRIX MULTIPLICATION\n"
+                    "────────────────────────\n\n"
+                    f"Matrix A:\n{A}\n\n"
+                    f"Matrix B:\n{B}\n\n"
+                    f"A × B:\n{C}"
+                )
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Input Error",
+                "Enter valid numbers in all matrix cells."
+            )
+
+    action_button(
+        left,
+        "MULTIPLY",
+        multiply
+    ).pack(
+        pady=25
+    )
+
+    tk.Label(
+        right,
+        text="OUTPUT",
+        font=("Segoe UI", 12, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        padx=22,
+        pady=(20, 0)
+    )
+
+    result = output_box(
+        right,
+        "Matrix multiplication result will appear here."
+    )
+
+
+# ============================================================
+# EIGENVALUE PAGE
+# ============================================================
+
+def eigen_page():
+
+    clear_page()
+
+    heading(
+        "Eigenvalue Explorer",
+        "Investigate eigenvalues and eigenvectors of a matrix"
+    )
+
+    panel = card(page_area)
+
+    panel.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        panel,
+        text="2 × 2 MATRIX",
+        font=("Segoe UI", 12, "bold"),
+        bg=WHITE,
+        fg=PURPLE
+    ).pack(
+        pady=(25, 10)
+    )
+
+    entries = []
+
+    grid = tk.Frame(
+        panel,
+        bg=WHITE
+    )
+
+    grid.pack()
+
+    for i in range(2):
+
+        row = []
+
+        for j in range(2):
+
+            default = "2" if i == j else "0"
+
+            entry = input_box(
+                grid,
+                default
+            )
+
+            entry.grid(
+                row=i,
+                column=j,
+                padx=5,
+                pady=5
+            )
+
+            row.append(entry)
+
+        entries.append(row)
+
+    def calculate():
+
+        try:
+
+            matrix = np.array([
+                [
+                    float(entries[i][j].get())
+                    for j in range(2)
+                ]
+                for i in range(2)
+            ])
+
+            values, vectors = (
+                MathEngine.eigen_calculation(matrix)
+            )
+
+            result.config(
+                text=(
+                    "EIGEN ANALYSIS\n"
+                    "────────────────────────\n\n"
+                    f"Matrix:\n{matrix}\n\n"
+                    f"Eigenvalues:\n{values}\n\n"
+                    f"Eigenvectors:\n{vectors}\n\n"
+                    "Eigenvectors represent special directions\n"
+                    "that remain aligned after transformation.\n\n"
+                    "Eigenvalues indicate the corresponding\n"
+                    "scale factor."
+                )
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Input Error",
+                "Please enter valid numbers."
+            )
+
+    action_button(
+        panel,
+        "FIND EIGENVALUES",
+        calculate,
+        CYAN
+    ).pack(
+        pady=18
+    )
+
+    result = output_box(
+        panel,
+        "Eigenvalue results will appear here."
+    )
+
+
+# ============================================================
+# DERIVATIVE PAGE
+# ============================================================
+
+def derivative_page():
+
+    clear_page()
+
+    heading(
+        "Symbolic Derivative",
+        "Use SymPy to calculate derivatives automatically"
+    )
+
+    panel = card(page_area)
+
+    panel.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        panel,
+        text="FUNCTION f(x)",
+        font=("Segoe UI", 12, "bold"),
+        bg=WHITE,
+        fg=PURPLE
+    ).pack(
+        pady=(30, 8)
+    )
+
+    function = tk.Entry(
+        panel,
+        width=35,
+        font=("Segoe UI", 14),
+        relief="solid",
+        bd=1
+    )
+
+    function.insert(
+        0,
+        "x**2 + 3*x"
+    )
+
+    function.pack(
+        pady=10
+    )
+
+    def calculate():
+
+        try:
+
+            expression, derivative = (
+                MathEngine.derivative(
+                    function.get()
+                )
+            )
+
+            result.config(
+                text=(
+                    "CALCULUS RESULT\n"
+                    "────────────────────────\n\n"
+                    f"f(x) = {expression}\n\n"
+                    f"f'(x) = {derivative}\n\n"
+                    "The derivative describes the rate\n"
+                    "at which the function changes.\n\n"
+                    "Derivatives form the mathematical\n"
+                    "foundation of optimization."
+                )
+            )
+
+        except Exception:
+
+            messagebox.showerror(
+                "Invalid Expression",
+                "Example: x**2 + 3*x"
+            )
+
+    action_button(
+        panel,
+        "CALCULATE DERIVATIVE",
+        calculate
+    ).pack(
+        pady=15
+    )
+
+    result = output_box(
+        panel,
+        "Derivative result will appear here."
+    )
+
+
+# ============================================================
+# GRADIENT PAGE
+# ============================================================
+
+def gradient_page():
+
+    clear_page()
+
+    heading(
+        "Gradient Explorer",
+        "Calculate partial derivatives of a function f(x, y)"
+    )
+
+    panel = card(page_area)
+
+    panel.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        panel,
+        text="FUNCTION f(x, y)",
+        font=("Segoe UI", 12, "bold"),
+        bg=WHITE,
+        fg=CYAN
+    ).pack(
+        pady=(30, 8)
+    )
+
+    function = tk.Entry(
+        panel,
+        width=35,
+        font=("Segoe UI", 14),
+        relief="solid",
+        bd=1
+    )
+
+    function.insert(
+        0,
+        "x**2 + y**2"
+    )
+
+    function.pack(
+        pady=10
+    )
+
+    def calculate():
+
+        try:
+
+            expression, dx, dy = (
+                MathEngine.gradient(
+                    function.get()
+                )
+            )
+
+            result.config(
+                text=(
+                    "GRADIENT RESULT\n"
+                    "────────────────────────\n\n"
+                    f"f(x,y) = {expression}\n\n"
+                    f"∂f/∂x = {dx}\n\n"
+                    f"∂f/∂y = {dy}\n\n"
+                    f"∇f = [{dx}, {dy}]\n\n"
+                    "The gradient indicates the direction\n"
+                    "of steepest increase of a function.\n\n"
+                    "Gradient descent moves in the opposite\n"
+                    "direction to reduce a loss."
+                )
+            )
+
+        except Exception:
+
+            messagebox.showerror(
+                "Invalid Expression",
+                "Example: x**2 + y**2"
+            )
+
+    action_button(
+        panel,
+        "CALCULATE GRADIENT",
+        calculate,
+        CYAN
+    ).pack(
+        pady=15
+    )
+
+    result = output_box(
+        panel,
+        "Gradient result will appear here."
+    )
+
+
+# ============================================================
+# CHAIN RULE PAGE
+# ============================================================
+
+def chain_page():
+
+    clear_page()
+
+    heading(
+        "Chain Rule Simulator",
+        "Understand the mathematical idea behind backpropagation"
+    )
+
+    panel = card(page_area)
+
+    panel.pack(
+        fill="both",
+        expand=True
+    )
+
+    explanation = """
+Consider the functions:
+
+z = x²
+
+y = 3z
+
+Using the chain rule:
+
+dy/dx = (dy/dz) × (dz/dx)
+
+dy/dz = 3
+
+dz/dx = 2x
+"""
+
+    tk.Label(
+        panel,
+        text=explanation,
+        font=("Consolas", 12),
+        bg=WHITE,
+        fg=TEXT,
+        justify="left"
+    ).pack(
+        pady=(25, 15)
+    )
+
+    row = tk.Frame(
+        panel,
+        bg=WHITE
+    )
+
+    row.pack(
+        pady=10
+    )
+
+    tk.Label(
+        row,
+        text="Enter x:",
+        font=("Segoe UI", 11, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(
+        side="left",
+        padx=8
+    )
+
+    x_entry = input_box(
+        row,
+        "2"
+    )
+
+    x_entry.pack(
+        side="left"
+    )
+
+    def calculate():
+
+        try:
+
+            x_value = float(
+                x_entry.get().strip()
+            )
+
+            z_value = x_value ** 2
+            y_value = 3 * z_value
+
+            dz_dx = 2 * x_value
+            dy_dz = 3
+            dy_dx = dy_dz * dz_dx
+
+            result.config(
+                text=(
+                    "CHAIN RULE RESULT\n"
+                    "────────────────────────\n\n"
+                    f"x = {x_value}\n\n"
+                    f"z = x² = {z_value}\n\n"
+                    f"y = 3z = {y_value}\n\n"
+                    f"dz/dx = 2x = {dz_dx}\n\n"
+                    f"dy/dz = {dy_dz}\n\n"
+                    f"dy/dx = (dy/dz) × (dz/dx)\n"
+                    f"dy/dx = {dy_dx}\n\n"
+                    "The chain rule combines derivatives\n"
+                    "from different stages of a computation.\n\n"
+                    "Neural networks use this principle\n"
+                    "during backpropagation."
+                )
+            )
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Input Error",
+                "Please enter a number."
+            )
+
+    action_button(
+        panel,
+        "TRACE GRADIENT",
+        calculate,
+        "#C2410C"
+    ).pack(
+        pady=15
+    )
+
+    result = output_box(
+        panel,
+        "Chain rule calculation will appear here."
+    )
+
+
+# ============================================================
+# ABOUT PAGE
+# ============================================================
+
+def about_page():
+
+    clear_page()
+
+    heading(
+        "About MathLab AI",
+        "Mathematical foundations used in Artificial Intelligence"
+    )
+
+    panel = card(page_area)
+
+    panel.pack(
+        fill="both",
+        expand=True
+    )
+
+    information = """
+LINEAR ALGEBRA
+Vectors and matrices are used to represent data,
+parameters and transformations.
+
+EIGENVALUES
+Eigenvalues and eigenvectors help us understand
+important properties of matrix transformations.
+
+CALCULUS
+Derivatives describe how a function changes with
+respect to its input.
+
+GRADIENTS
+A gradient contains partial derivatives and indicates
+the direction of fastest increase.
+
+CHAIN RULE
+The chain rule allows derivatives to pass through
+multiple mathematical operations.
+
+BACKPROPAGATION
+Neural networks use the chain rule to calculate
+how each parameter contributes to the final error.
+
+TOOLS USED
+• Python
+• Tkinter
+• NumPy
+• SymPy
+"""
+
+    tk.Label(
+        panel,
+        text=information,
+        font=("Segoe UI", 12),
+        bg=WHITE,
+        fg=TEXT,
+        justify="left",
+        anchor="nw",
+        padx=35,
+        pady=30
+    ).pack(
+        fill="both",
+        expand=True
+    )
+
+
+# ============================================================
+# TOP NAVIGATION
+# ============================================================
+
+header = tk.Frame(
+    root,
+    bg=NAVY,
+    height=82
+)
+
+header.pack(
+    side="top",
+    fill="x"
+)
+
+header.pack_propagate(False)
+
+
+tk.Label(
+    header,
+    text="∑  MathLab AI",
+    font=("Segoe UI", 22, "bold"),
+    bg=NAVY,
+    fg=WHITE
+).pack(
+    side="left",
+    padx=28
+)
+
+
+tk.Label(
+    header,
+    text="Interactive Mathematics Toolkit",
+    font=("Segoe UI", 10),
+    bg=NAVY,
+    fg="#BAE6FD"
+).pack(
+    side="right",
+    padx=28
+)
+
+
+# ============================================================
+# NAVIGATION BAR
+# ============================================================
+
+navigation = tk.Frame(
+    root,
+    bg=WHITE,
+    height=55,
+    highlightbackground=BORDER,
+    highlightthickness=1
+)
+
+navigation.pack(
+    fill="x"
+)
+
+navigation.pack_propagate(False)
+
+
+def nav_item(text, command):
+
+    button = tk.Button(
+        navigation,
+        text=text,
+        command=command,
+        font=("Segoe UI", 9, "bold"),
+        bg=WHITE,
+        fg=TEXT,
+        activebackground=PURPLE_LIGHT,
+        activeforeground=PURPLE,
+        relief="flat",
+        bd=0,
+        padx=13,
+        pady=8,
+        cursor="hand2"
+    )
+
+    button.pack(
+        side="left",
+        padx=2,
+        pady=7
+    )
+
+
+nav_item("Home", dashboard)
+nav_item("Vectors", vector_page)
+nav_item("Matrices", matrix_page)
+nav_item("Eigenvalues", eigen_page)
+nav_item("Derivatives", derivative_page)
+nav_item("Gradients", gradient_page)
+nav_item("Chain Rule", chain_page)
+nav_item("About", about_page)
+
+
+# ============================================================
+# PAGE AREA
+# ============================================================
+
+page_container = tk.Frame(
+    root,
+    bg=BG
+)
+
+page_container.pack(
+    fill="both",
+    expand=True,
+    padx=22,
+    pady=18
+)
+
+page_canvas = tk.Canvas(
+    page_container,
+    bg=BG,
+    highlightthickness=0
+)
+
+page_scrollbar = tk.Scrollbar(
+    page_container,
+    orient="vertical",
+    command=page_canvas.yview
+)
+
+page_area = tk.Frame(
+    page_canvas,
+    bg=BG
+)
+
+page_window = page_canvas.create_window(
+    (0, 0),
+    window=page_area,
+    anchor="nw"
+)
+
+page_canvas.configure(
+    yscrollcommand=page_scrollbar.set
+)
+
+page_canvas.pack(
+    side="left",
+    fill="both",
+    expand=True
+)
+
+page_scrollbar.pack(
+    side="right",
+    fill="y"
+)
+
+
+def update_scroll_region(event=None):
+
+    page_canvas.configure(
+        scrollregion=page_canvas.bbox("all")
+    )
+
+
+def resize_page_area(event):
+
+    page_canvas.itemconfig(
+        page_window,
+        width=event.width
+    )
+
+    page_canvas.configure(
+        scrollregion=page_canvas.bbox("all")
+    )
+
+
+page_area.bind(
+    "<Configure>",
+    update_scroll_region
+)
+
+page_canvas.bind(
+    "<Configure>",
+    resize_page_area
+)
+
+
+def mouse_wheel(event):
+
+    page_canvas.yview_scroll(
+        int(-1 * (event.delta / 120)),
+        "units"
+    )
+
+
+page_canvas.bind_all(
+    "<MouseWheel>",
+    mouse_wheel
+)
+
+
+# ============================================================
+# STATUS BAR
+# ============================================================
+
+status = tk.Frame(
+    root,
+    bg="#E0E7FF",
+    height=30
+)
+
+status.pack(
+    side="bottom",
+    fill="x"
+)
+
+status.pack_propagate(False)
+
+
+tk.Label(
+    status,
+    text="MathLab AI  •  NumPy + SymPy  •  Mathematical Foundations of AI",
+    font=("Segoe UI", 8),
+    bg="#E0E7FF",
+    fg="#3730A3"
+).pack(
+    pady=6
+)
+
+
+# ============================================================
+# START APPLICATION
+# ============================================================
+
+dashboard()
+
+root.mainloop()
