@@ -1,0 +1,1058 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ============================================================
+# DATA HANDLING CLASS
+# ============================================================
+
+class StudentAnalytics:
+
+    def __init__(self):
+        self.student_data = pd.DataFrame({
+            "Student ID": [101, 102, 103, 104, 105, 106, 107, 108],
+            "Student": [
+                "Sharwari", "Ritika", "Bhumika", "Kunali",
+                "Nandini", "Sneha", "Parth", "Arnav"
+            ],
+            "Branch": [
+                "CSE", "CSE", "ECE", "CSE",
+                "ECE", "IT", "IT", "CSE"
+            ],
+            "Mathematics": [85, 78, 92, np.nan, 67, 88, 74, 95],
+            "Python": [90, 82, 89, 76, np.nan, 91, 70, 94],
+            "Data Science": [88, 79, 95, 80, 72, 93, 75, np.nan]
+        })
+
+        self.attendance_data = pd.DataFrame({
+            "Student ID": [101, 102, 103, 104, 105, 106, 107, 108],
+            "Attendance %": [92, 85, 96, 78, 81, 94, 76, 98]
+        })
+
+    # --------------------------------------------------------
+    # DATA CLEANING
+    # --------------------------------------------------------
+
+    def cleaned_data(self):
+
+        df = self.student_data.copy()
+
+        subjects = [
+            "Mathematics",
+            "Python",
+            "Data Science"
+        ]
+
+        for subject in subjects:
+            df[subject] = df[subject].fillna(
+                df[subject].mean()
+            )
+
+        return df
+
+    # --------------------------------------------------------
+    # AVERAGE CALCULATION
+    # --------------------------------------------------------
+
+    def add_average(self):
+
+        df = self.cleaned_data()
+
+        df["Average"] = df[
+            ["Mathematics", "Python", "Data Science"]
+        ].mean(axis=1)
+
+        return df
+
+    # --------------------------------------------------------
+    # LIST COMPREHENSION
+    # --------------------------------------------------------
+
+    def list_demo(self):
+
+        scores = [85, 72, 91, 64, 88, 95, 76]
+
+        return [
+            score for score in scores
+            if score >= 80
+        ]
+
+    # --------------------------------------------------------
+    # DICTIONARY COMPREHENSION
+    # --------------------------------------------------------
+
+    def dictionary_demo(self):
+
+        marks = {
+            "Mathematics": 85,
+            "Python": 90,
+            "Data Science": 88
+        }
+
+        return {
+            subject: marks[subject] + 5
+            for subject in marks
+        }
+
+    # --------------------------------------------------------
+    # NUMPY ARRAY
+    # --------------------------------------------------------
+
+    def numpy_array(self):
+
+        return np.array([
+            [85, 90, 88],
+            [78, 82, 79],
+            [92, 89, 95]
+        ])
+
+    # --------------------------------------------------------
+    # NUMPY BROADCASTING
+    # --------------------------------------------------------
+
+    def numpy_broadcasting(self):
+
+        values = self.numpy_array()
+
+        return values + 5
+
+    # --------------------------------------------------------
+    # NUMPY VECTORIZATION
+    # --------------------------------------------------------
+
+    def numpy_vectorization(self):
+
+        marks = np.array([70, 75, 80, 85, 90])
+
+        return marks * 1.10
+
+    # --------------------------------------------------------
+    # GROUPBY ANALYSIS
+    # --------------------------------------------------------
+
+    def branch_analysis(self):
+
+        df = self.add_average()
+
+        return df.groupby(
+            "Branch"
+        )["Average"].mean()
+
+    # --------------------------------------------------------
+    # MERGE DATA
+    # --------------------------------------------------------
+
+    def combined_data(self):
+
+        return pd.merge(
+            self.student_data,
+            self.attendance_data,
+            on="Student ID"
+        )
+
+
+analytics = StudentAnalytics()
+
+
+# ============================================================
+# APPLICATION WINDOW
+# ============================================================
+
+window = tk.Tk()
+
+window.title("Student Analytics Studio")
+window.geometry("1180x720")
+window.minsize(1000, 650)
+window.configure(bg="#F5F3FF")
+
+
+# ============================================================
+# COLORS
+# ============================================================
+
+NAVY = "#172554"
+PURPLE = "#6D28D9"
+LIGHT_PURPLE = "#EDE9FE"
+TEAL = "#0F766E"
+LIGHT_TEAL = "#CCFBF1"
+WHITE = "#FFFFFF"
+TEXT = "#1E293B"
+MUTED = "#64748B"
+BG = "#F5F3FF"
+BORDER = "#DDD6FE"
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+header = tk.Frame(
+    window,
+    bg=NAVY,
+    height=85
+)
+
+header.pack(
+    side="top",
+    fill="x"
+)
+
+header.pack_propagate(False)
+
+
+tk.Label(
+    header,
+    text="Student Analytics Studio",
+    font=("Segoe UI", 24, "bold"),
+    bg=NAVY,
+    fg="white"
+).pack(
+    side="left",
+    padx=30
+)
+
+
+tk.Label(
+    header,
+    text="Python • NumPy • Pandas • Visualization",
+    font=("Segoe UI", 11),
+    bg=NAVY,
+    fg="#C4B5FD"
+).pack(
+    side="right",
+    padx=30
+)
+
+
+# ============================================================
+# NAVIGATION BAR
+# ============================================================
+
+navigation = tk.Frame(
+    window,
+    bg=WHITE,
+    height=58
+)
+
+navigation.pack(
+    fill="x"
+)
+
+navigation.pack_propagate(False)
+
+
+# ============================================================
+# MAIN CONTENT AREA
+# ============================================================
+
+main_area = tk.Frame(
+    window,
+    bg=BG
+)
+
+main_area.pack(
+    fill="both",
+    expand=True,
+    padx=18,
+    pady=18
+)
+
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def remove_widgets():
+
+    for widget in main_area.winfo_children():
+        widget.destroy()
+
+
+def section_heading(title_text, subtitle):
+
+    tk.Label(
+        main_area,
+        text=title_text,
+        font=("Segoe UI", 22, "bold"),
+        bg=BG,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        pady=(5, 2)
+    )
+
+    tk.Label(
+        main_area,
+        text=subtitle,
+        font=("Segoe UI", 10),
+        bg=BG,
+        fg=MUTED
+    ).pack(
+        anchor="w",
+        pady=(0, 15)
+    )
+
+
+def create_card(parent, title_text, value, color):
+
+    card = tk.Frame(
+        parent,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    card.pack(
+        side="left",
+        fill="both",
+        expand=True,
+        padx=6
+    )
+
+    tk.Label(
+        card,
+        text=title_text,
+        font=("Segoe UI", 10),
+        bg=WHITE,
+        fg=MUTED
+    ).pack(
+        anchor="w",
+        padx=18,
+        pady=(15, 3)
+    )
+
+    tk.Label(
+        card,
+        text=value,
+        font=("Segoe UI", 21, "bold"),
+        bg=WHITE,
+        fg=color
+    ).pack(
+        anchor="w",
+        padx=18,
+        pady=(0, 15)
+    )
+
+
+def nav_button(text, command):
+
+    return tk.Button(
+        navigation,
+        text=text,
+        command=command,
+        font=("Segoe UI", 10, "bold"),
+        bg=WHITE,
+        fg=TEXT,
+        activebackground=LIGHT_PURPLE,
+        activeforeground=PURPLE,
+        relief="flat",
+        bd=0,
+        padx=18,
+        pady=8,
+        cursor="hand2"
+    )
+
+
+# ============================================================
+# DASHBOARD HOME
+# ============================================================
+
+def show_dashboard():
+
+    remove_widgets()
+
+    section_heading(
+        "Dashboard Overview",
+        "A quick summary of the student performance dataset"
+    )
+
+    # Summary cards
+
+    cards = tk.Frame(
+        main_area,
+        bg=BG
+    )
+
+    cards.pack(
+        fill="x",
+        pady=(0, 18)
+    )
+
+    df = analytics.add_average()
+
+    total_students = len(df)
+    total_subjects = 3
+    total_branches = df["Branch"].nunique()
+    overall_average = df["Average"].mean()
+
+    create_card(
+        cards,
+        "TOTAL STUDENTS",
+        str(total_students),
+        PURPLE
+    )
+
+    create_card(
+        cards,
+        "SUBJECTS",
+        str(total_subjects),
+        TEAL
+    )
+
+    create_card(
+        cards,
+        "BRANCHES",
+        str(total_branches),
+        "#C2410C"
+    )
+
+    create_card(
+        cards,
+        "OVERALL AVERAGE",
+        f"{overall_average:.1f}",
+        "#BE185D"
+    )
+
+    # Information area
+
+    info = tk.Frame(
+        main_area,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    info.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        info,
+        text="Project Modules",
+        font=("Segoe UI", 16, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(
+        anchor="w",
+        padx=25,
+        pady=(20, 10)
+    )
+
+    modules = [
+        ("Python", "Functions, OOP and comprehensions"),
+        ("NumPy", "Arrays, broadcasting and vectorization"),
+        ("Pandas", "Cleaning, grouping and merging"),
+        ("Dataset", "Explore the student records"),
+        ("Analytics", "Matplotlib and Seaborn charts")
+    ]
+
+    for module, description in modules:
+
+        row = tk.Frame(
+            info,
+            bg=WHITE
+        )
+
+        row.pack(
+            fill="x",
+            padx=25,
+            pady=6
+        )
+
+        tk.Label(
+            row,
+            text=module,
+            font=("Segoe UI", 11, "bold"),
+            bg=LIGHT_PURPLE,
+            fg=PURPLE,
+            width=15,
+            anchor="w",
+            padx=10,
+            pady=6
+        ).pack(side="left")
+
+        tk.Label(
+            row,
+            text=description,
+            font=("Segoe UI", 10),
+            bg=WHITE,
+            fg=MUTED
+        ).pack(
+            side="left",
+            padx=15
+        )
+
+
+# ============================================================
+# PYTHON PAGE
+# ============================================================
+
+def show_python():
+
+    remove_widgets()
+
+    section_heading(
+        "Python Concepts",
+        "Examples of core Python features used in data science"
+    )
+
+    result_box = tk.Frame(
+        main_area,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    result_box.pack(
+        fill="both",
+        expand=True
+    )
+
+    high_scores = analytics.list_demo()
+    bonus_marks = analytics.dictionary_demo()
+
+    result = f"""
+LIST COMPREHENSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Scores:
+[85, 72, 91, 64, 88, 95, 76]
+
+Scores greater than or equal to 80:
+
+{high_scores}
+
+
+DICTIONARY COMPREHENSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Original marks:
+
+Mathematics     : 85
+Python          : 90
+Data Science    : 88
+
+After adding 5 marks:
+
+{bonus_marks}
+
+
+OBJECT ORIENTED PROGRAMMING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The StudentAnalytics class stores the datasets
+and contains separate methods for cleaning,
+analysis, NumPy operations and merging.
+"""
+
+    tk.Label(
+        result_box,
+        text=result,
+        font=("Consolas", 11),
+        bg=WHITE,
+        fg=TEXT,
+        justify="left",
+        anchor="nw",
+        padx=30,
+        pady=25
+    ).pack(
+        fill="both",
+        expand=True
+    )
+
+
+# ============================================================
+# NUMPY PAGE
+# ============================================================
+
+def show_numpy():
+
+    remove_widgets()
+
+    section_heading(
+        "NumPy Laboratory",
+        "Working with arrays and numerical operations"
+    )
+
+    container = tk.Frame(
+        main_area,
+        bg=BG
+    )
+
+    container.pack(
+        fill="both",
+        expand=True
+    )
+
+    array = analytics.numpy_array()
+    broadcast = analytics.numpy_broadcasting()
+    vector = analytics.numpy_vectorization()
+
+    blocks = [
+        (
+            "2D ARRAY",
+            array
+        ),
+        (
+            "BROADCASTING (+5)",
+            broadcast
+        ),
+        (
+            "VECTORIZED RESULT",
+            vector
+        )
+    ]
+
+    for heading, value in blocks:
+
+        box = tk.Frame(
+            container,
+            bg=WHITE,
+            highlightbackground=BORDER,
+            highlightthickness=1
+        )
+
+        box.pack(
+            fill="x",
+            pady=6
+        )
+
+        tk.Label(
+            box,
+            text=heading,
+            font=("Segoe UI", 11, "bold"),
+            bg=WHITE,
+            fg=PURPLE
+        ).pack(
+            anchor="w",
+            padx=20,
+            pady=(12, 5)
+        )
+
+        tk.Label(
+            box,
+            text=str(value),
+            font=("Consolas", 11),
+            bg=WHITE,
+            fg=TEXT,
+            justify="left"
+        ).pack(
+            anchor="w",
+            padx=20,
+            pady=(0, 12)
+        )
+
+
+# ============================================================
+# PANDAS PAGE
+# ============================================================
+
+def show_pandas():
+
+    remove_widgets()
+
+    section_heading(
+        "Pandas Analysis",
+        "Cleaning missing values, grouping data and merging tables"
+    )
+
+    cleaned = analytics.cleaned_data()
+    grouped = analytics.branch_analysis()
+    merged = analytics.combined_data()
+
+    output = f"""
+DATA CLEANING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Missing subject marks are replaced with the
+mean of the respective subject column.
+
+
+BRANCH-WISE AVERAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{grouped.to_string()}
+
+
+MERGED DATASET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{merged.head().to_string(index=False)}
+"""
+
+    box = tk.Frame(
+        main_area,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    box.pack(
+        fill="both",
+        expand=True
+    )
+
+    tk.Label(
+        box,
+        text=output,
+        font=("Consolas", 10),
+        bg=WHITE,
+        fg=TEXT,
+        justify="left",
+        anchor="nw",
+        padx=25,
+        pady=20
+    ).pack(
+        fill="both",
+        expand=True
+    )
+
+
+# ============================================================
+# DATASET PAGE
+# ============================================================
+
+def show_dataset():
+
+    remove_widgets()
+
+    section_heading(
+        "Student Records",
+        "Original Pandas DataFrame"
+    )
+
+    table_frame = tk.Frame(
+        main_area,
+        bg=WHITE
+    )
+
+    table_frame.pack(
+        fill="both",
+        expand=True
+    )
+
+    columns = list(analytics.student_data.columns)
+
+    style = ttk.Style()
+
+    style.configure(
+        "Treeview",
+        background=WHITE,
+        foreground=TEXT,
+        rowheight=32,
+        fieldbackground=WHITE,
+        font=("Segoe UI", 10)
+    )
+
+    style.configure(
+        "Treeview.Heading",
+        background=NAVY,
+        foreground="white",
+        font=("Segoe UI", 10, "bold")
+    )
+
+    tree = ttk.Treeview(
+        table_frame,
+        columns=columns,
+        show="headings"
+    )
+
+    scrollbar = ttk.Scrollbar(
+        table_frame,
+        orient="vertical",
+        command=tree.yview
+    )
+
+    tree.configure(
+        yscrollcommand=scrollbar.set
+    )
+
+    for column in columns:
+
+        tree.heading(
+            column,
+            text=column
+        )
+
+        tree.column(
+            column,
+            width=130,
+            anchor="center"
+        )
+
+    for _, row in analytics.student_data.iterrows():
+
+        tree.insert(
+            "",
+            "end",
+            values=[
+                "" if pd.isna(value) else value
+                for value in row
+            ]
+        )
+
+    tree.pack(
+        side="left",
+        fill="both",
+        expand=True,
+        padx=(15, 0),
+        pady=15
+    )
+
+    scrollbar.pack(
+        side="right",
+        fill="y",
+        padx=15,
+        pady=15
+    )
+
+
+# ============================================================
+# MATPLOTLIB CHART
+# ============================================================
+
+def matplotlib_graph():
+
+    df = analytics.add_average()
+
+    plt.figure(
+        figsize=(9, 5),
+        facecolor="white"
+    )
+
+    plt.plot(
+        df["Student"],
+        df["Average"],
+        marker="o",
+        linewidth=2.5,
+        color="#6D28D9"
+    )
+
+    plt.title(
+        "Student Average Performance",
+        fontsize=15,
+        fontweight="bold"
+    )
+
+    plt.xlabel("Student")
+    plt.ylabel("Average Marks")
+
+    plt.xticks(rotation=25)
+
+    plt.grid(
+        axis="y",
+        alpha=0.25
+    )
+
+    plt.tight_layout()
+
+    plt.show()
+
+
+# ============================================================
+# SEABORN CHART
+# ============================================================
+
+def seaborn_graph():
+
+    df = analytics.add_average()
+
+    plt.figure(
+        figsize=(9, 5)
+    )
+
+    sns.set_theme(
+        style="whitegrid"
+    )
+
+    sns.boxplot(
+        data=df,
+        x="Branch",
+        y="Average",
+        palette="Set2"
+    )
+
+    plt.title(
+        "Performance Distribution by Branch",
+        fontsize=15,
+        fontweight="bold"
+    )
+
+    plt.xlabel("Branch")
+    plt.ylabel("Average Marks")
+
+    plt.tight_layout()
+
+    plt.show()
+
+
+# ============================================================
+# ANALYTICS PAGE
+# ============================================================
+
+def show_analytics():
+
+    remove_widgets()
+
+    section_heading(
+        "Visual Analytics",
+        "Explore student performance through statistical charts"
+    )
+
+    chart_area = tk.Frame(
+        main_area,
+        bg=BG
+    )
+
+    chart_area.pack(
+        fill="both",
+        expand=True
+    )
+
+    matplotlib_box = tk.Frame(
+        chart_area,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    matplotlib_box.pack(
+        side="left",
+        fill="both",
+        expand=True,
+        padx=(0, 8)
+    )
+
+    tk.Label(
+        matplotlib_box,
+        text="Student Performance",
+        font=("Segoe UI", 15, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(pady=(30, 10))
+
+    tk.Label(
+        matplotlib_box,
+        text="Line chart using Matplotlib",
+        font=("Segoe UI", 10),
+        bg=WHITE,
+        fg=MUTED
+    ).pack(pady=5)
+
+    tk.Button(
+        matplotlib_box,
+        text="OPEN MATPLOTLIB",
+        command=matplotlib_graph,
+        font=("Segoe UI", 10, "bold"),
+        bg=PURPLE,
+        fg="white",
+        relief="flat",
+        padx=20,
+        pady=10,
+        cursor="hand2"
+    ).pack(pady=30)
+
+    seaborn_box = tk.Frame(
+        chart_area,
+        bg=WHITE,
+        highlightbackground=BORDER,
+        highlightthickness=1
+    )
+
+    seaborn_box.pack(
+        side="right",
+        fill="both",
+        expand=True,
+        padx=(8, 0)
+    )
+
+    tk.Label(
+        seaborn_box,
+        text="Branch Comparison",
+        font=("Segoe UI", 15, "bold"),
+        bg=WHITE,
+        fg=TEXT
+    ).pack(pady=(30, 10))
+
+    tk.Label(
+        seaborn_box,
+        text="Distribution plot using Seaborn",
+        font=("Segoe UI", 10),
+        bg=WHITE,
+        fg=MUTED
+    ).pack(pady=5)
+
+    tk.Button(
+        seaborn_box,
+        text="OPEN SEABORN",
+        command=seaborn_graph,
+        font=("Segoe UI", 10, "bold"),
+        bg=TEAL,
+        fg="white",
+        relief="flat",
+        padx=20,
+        pady=10,
+        cursor="hand2"
+    ).pack(pady=30)
+
+
+# ============================================================
+# NAVIGATION BUTTONS
+# ============================================================
+
+nav_items = [
+    ("Dashboard", show_dashboard),
+    ("Python", show_python),
+    ("NumPy", show_numpy),
+    ("Pandas", show_pandas),
+    ("Dataset", show_dataset),
+    ("Analytics", show_analytics)
+]
+
+for label, action in nav_items:
+
+    nav_button(
+        label,
+        action
+    ).pack(
+        side="left",
+        padx=5,
+        pady=8
+    )
+
+
+# ============================================================
+# EXIT BUTTON
+# ============================================================
+
+tk.Button(
+    navigation,
+    text="Exit",
+    command=window.destroy,
+    font=("Segoe UI", 10, "bold"),
+    bg="#FEE2E2",
+    fg="#B91C1C",
+    relief="flat",
+    padx=15,
+    pady=8,
+    cursor="hand2"
+).pack(
+    side="right",
+    padx=15,
+    pady=8
+)
+
+
+# ============================================================
+# START
+# ============================================================
+
+show_dashboard()
+
+window.mainloop()
