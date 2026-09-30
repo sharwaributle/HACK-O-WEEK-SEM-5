@@ -1,0 +1,343 @@
+# ============================================================
+# ENSEMBLE METHODS + BIAS VARIANCE + REGULARIZATION
+# ============================================================
+
+import numpy as np
+import pandas as pd
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import (
+    BaggingClassifier,
+    RandomForestClassifier,
+    GradientBoostingClassifier
+)
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+
+
+# ============================================================
+# 1. LOAD DATASET
+# ============================================================
+
+data = load_breast_cancer()
+
+X = data.data
+y = data.target
+
+print("Dataset Shape:", X.shape)
+print("Number of Features:", X.shape[1])
+print("Number of Classes:", len(np.unique(y)))
+
+
+# ============================================================
+# 2. TRAIN-TEST SPLIT
+# ============================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+print("\nTraining Data:", X_train.shape)
+print("Testing Data:", X_test.shape)
+
+
+# ============================================================
+# 3. BAGGING
+# ============================================================
+
+bagging_model = BaggingClassifier(
+    estimator=DecisionTreeClassifier(random_state=42),
+    n_estimators=100,
+    random_state=42
+)
+
+bagging_model.fit(X_train, y_train)
+
+bag_train_pred = bagging_model.predict(X_train)
+bag_test_pred = bagging_model.predict(X_test)
+
+bag_train_accuracy = accuracy_score(y_train, bag_train_pred)
+bag_test_accuracy = accuracy_score(y_test, bag_test_pred)
+
+print("\n========== BAGGING ==========")
+print("Training Accuracy:", bag_train_accuracy)
+print("Testing Accuracy :", bag_test_accuracy)
+
+
+# ============================================================
+# 4. RANDOM FOREST
+# ============================================================
+
+rf_model = RandomForestClassifier(
+    n_estimators=100,
+    random_state=42
+)
+
+rf_model.fit(X_train, y_train)
+
+rf_train_pred = rf_model.predict(X_train)
+rf_test_pred = rf_model.predict(X_test)
+
+rf_train_accuracy = accuracy_score(y_train, rf_train_pred)
+rf_test_accuracy = accuracy_score(y_test, rf_test_pred)
+
+print("\n========== RANDOM FOREST ==========")
+print("Training Accuracy:", rf_train_accuracy)
+print("Testing Accuracy :", rf_test_accuracy)
+
+
+# ============================================================
+# 5. GRADIENT BOOSTING
+# ============================================================
+
+gb_model = GradientBoostingClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    random_state=42
+)
+
+gb_model.fit(X_train, y_train)
+
+gb_train_pred = gb_model.predict(X_train)
+gb_test_pred = gb_model.predict(X_test)
+
+gb_train_accuracy = accuracy_score(y_train, gb_train_pred)
+gb_test_accuracy = accuracy_score(y_test, gb_test_pred)
+
+print("\n========== GRADIENT BOOSTING ==========")
+print("Training Accuracy:", gb_train_accuracy)
+print("Testing Accuracy :", gb_test_accuracy)
+
+
+# ============================================================
+# 6. XGBOOST
+# ============================================================
+
+xgb_model = XGBClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    reg_alpha=0.1,
+    reg_lambda=1.0,
+    eval_metric="logloss",
+    random_state=42
+)
+
+xgb_model.fit(X_train, y_train)
+
+xgb_train_pred = xgb_model.predict(X_train)
+xgb_test_pred = xgb_model.predict(X_test)
+
+xgb_train_accuracy = accuracy_score(y_train, xgb_train_pred)
+xgb_test_accuracy = accuracy_score(y_test, xgb_test_pred)
+
+print("\n========== XGBOOST ==========")
+print("Training Accuracy:", xgb_train_accuracy)
+print("Testing Accuracy :", xgb_test_accuracy)
+
+
+# ============================================================
+# 7. LIGHTGBM
+# ============================================================
+
+lgbm_model = LGBMClassifier(
+    n_estimators=100,
+    learning_rate=0.1,
+    num_leaves=31,
+    max_depth=-1,
+    reg_alpha=0.1,
+    reg_lambda=1.0,
+    random_state=42,
+    verbosity=-1
+)
+
+lgbm_model.fit(X_train, y_train)
+
+lgbm_train_pred = lgbm_model.predict(X_train)
+lgbm_test_pred = lgbm_model.predict(X_test)
+
+lgbm_train_accuracy = accuracy_score(
+    y_train,
+    lgbm_train_pred
+)
+
+lgbm_test_accuracy = accuracy_score(
+    y_test,
+    lgbm_test_pred
+)
+
+print("\n========== LIGHTGBM ==========")
+print("Training Accuracy:", lgbm_train_accuracy)
+print("Testing Accuracy :", lgbm_test_accuracy)
+
+
+# ============================================================
+# 8. COMPARE ALL MODELS
+# ============================================================
+
+results = pd.DataFrame({
+    "Model": [
+        "Bagging",
+        "Random Forest",
+        "Gradient Boosting",
+        "XGBoost",
+        "LightGBM"
+    ],
+
+    "Training Accuracy": [
+        bag_train_accuracy,
+        rf_train_accuracy,
+        gb_train_accuracy,
+        xgb_train_accuracy,
+        lgbm_train_accuracy
+    ],
+
+    "Testing Accuracy": [
+        bag_test_accuracy,
+        rf_test_accuracy,
+        gb_test_accuracy,
+        xgb_test_accuracy,
+        lgbm_test_accuracy
+    ]
+})
+
+print("\n========== MODEL COMPARISON ==========")
+print(results)
+
+
+# ============================================================
+# 9. BIAS-VARIANCE / OVERFITTING CHECK
+# ============================================================
+
+print("\n========== OVERFITTING CHECK ==========")
+
+for index, row in results.iterrows():
+
+    gap = row["Training Accuracy"] - row["Testing Accuracy"]
+
+    print(
+        f"{row['Model']}: "
+        f"Train-Test Gap = {gap:.4f}"
+    )
+
+
+# ============================================================
+# 10. INTENTIONALLY COMPLEX MODEL
+# ============================================================
+
+# Very deep decision tree can overfit.
+
+complex_tree = DecisionTreeClassifier(
+    max_depth=None,
+    random_state=42
+)
+
+complex_tree.fit(X_train, y_train)
+
+complex_train_pred = complex_tree.predict(X_train)
+complex_test_pred = complex_tree.predict(X_test)
+
+complex_train_accuracy = accuracy_score(
+    y_train,
+    complex_train_pred
+)
+
+complex_test_accuracy = accuracy_score(
+    y_test,
+    complex_test_pred
+)
+
+print("\n========== COMPLEX TREE ==========")
+print("Training Accuracy:", complex_train_accuracy)
+print("Testing Accuracy :", complex_test_accuracy)
+
+print(
+    "\nLarge difference between training and testing "
+    "accuracy can indicate overfitting."
+)
+
+
+# ============================================================
+# 11. REGULARIZATION IN XGBOOST
+# ============================================================
+
+# reg_alpha = L1 regularization
+# reg_lambda = L2 regularization
+
+regularized_xgb = XGBClassifier(
+    n_estimators=100,
+    learning_rate=0.05,
+    max_depth=3,
+
+    # L1
+    reg_alpha=1.0,
+
+    # L2
+    reg_lambda=1.0,
+
+    eval_metric="logloss",
+    random_state=42
+)
+
+regularized_xgb.fit(X_train, y_train)
+
+reg_train_pred = regularized_xgb.predict(X_train)
+reg_test_pred = regularized_xgb.predict(X_test)
+
+reg_train_accuracy = accuracy_score(
+    y_train,
+    reg_train_pred
+)
+
+reg_test_accuracy = accuracy_score(
+    y_test,
+    reg_test_pred
+)
+
+print("\n========== REGULARIZED XGBOOST ==========")
+print("Training Accuracy:", reg_train_accuracy)
+print("Testing Accuracy :", reg_test_accuracy)
+
+
+# ============================================================
+# 12. FINAL SUMMARY
+# ============================================================
+
+print("\n========================================")
+print("FINAL SUMMARY")
+print("========================================")
+
+print("Bagging:")
+print("Reduces variance by combining independently trained models.")
+
+print("\nBoosting:")
+print("Builds models sequentially to correct previous errors.")
+
+print("\nXGBoost:")
+print("Optimized gradient boosting with regularization.")
+
+print("\nLightGBM:")
+print("Fast gradient boosting using leaf-wise tree growth.")
+
+print("\nBias:")
+print("High bias generally leads to underfitting.")
+
+print("\nVariance:")
+print("High variance generally leads to overfitting.")
+
+print("\nL1:")
+print("Can make weights zero and perform feature selection.")
+
+print("\nL2:")
+print("Penalizes large weights and controls model complexity.")
