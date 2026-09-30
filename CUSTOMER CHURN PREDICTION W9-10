@@ -1,0 +1,1083 @@
+# ============================================================
+# CUSTOMER CHURN PREDICTION
+# Machine Learning Workflow using Scikit-learn
+# ============================================================
+#
+# Topics Covered:
+# 1. Feature Engineering
+# 2. Missing Data Handling
+# 3. Feature Scaling
+# 4. Train/Test Split
+# 5. Scikit-learn Pipeline
+# 6. Logistic Regression
+# 7. Cross Validation
+# 8. Confusion Matrix
+# 9. Precision
+# 10. Recall
+# 11. F1 Score
+# 12. ROC-AUC
+# 13. Model Interpretation
+#
+# NO GRAPHS
+# ============================================================
+
+
+# ------------------------------------------------------------
+# STEP 1: IMPORT LIBRARIES
+# ------------------------------------------------------------
+
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import (
+    train_test_split,
+    cross_val_score,
+    StratifiedKFold
+)
+
+from sklearn.compose import ColumnTransformer
+
+from sklearn.pipeline import Pipeline
+
+from sklearn.impute import SimpleImputer
+
+from sklearn.preprocessing import (
+    StandardScaler,
+    OneHotEncoder
+)
+
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report,
+    roc_auc_score
+)
+
+
+# ============================================================
+# STEP 2: CREATE CUSTOMER DATASET
+# ============================================================
+
+np.random.seed(42)
+
+n_customers = 500
+
+
+customer_id = np.arange(
+    1001,
+    1001 + n_customers
+)
+
+
+age = np.random.randint(
+    18,
+    65,
+    n_customers
+)
+
+
+tenure_months = np.random.randint(
+    1,
+    73,
+    n_customers
+)
+
+
+monthly_charges = np.random.randint(
+    500,
+    8000,
+    n_customers
+)
+
+
+support_tickets = np.random.randint(
+    0,
+    10,
+    n_customers
+)
+
+
+website_visits = np.random.randint(
+    1,
+    30,
+    n_customers
+)
+
+
+payment_delay = np.random.randint(
+    0,
+    6,
+    n_customers
+)
+
+
+contract_type = np.random.choice(
+
+    [
+        "Monthly",
+        "Yearly",
+        "Two Year"
+    ],
+
+    n_customers,
+
+    p=[
+        0.55,
+        0.30,
+        0.15
+    ]
+)
+
+
+internet_service = np.random.choice(
+
+    [
+        "Fiber",
+        "DSL",
+        "None"
+    ],
+
+    n_customers,
+
+    p=[
+        0.45,
+        0.40,
+        0.15
+    ]
+)
+
+
+# ============================================================
+# STEP 3: CREATE CHURN TARGET
+# ============================================================
+
+churn_score = (
+
+    0.8 * (contract_type == "Monthly")
+
+    + 0.25 * support_tickets
+
+    + 0.35 * payment_delay
+
+    + 0.8 * (tenure_months < 12)
+
+    + 0.00008 * monthly_charges
+
+    - 0.5 * (contract_type == "Two Year")
+
+)
+
+
+# Convert score into probability
+
+probability = 1 / (
+    1 + np.exp(-churn_score + 2.5)
+)
+
+
+# Create target
+
+churn = np.random.binomial(
+    1,
+    probability
+)
+
+
+# ============================================================
+# STEP 4: CREATE DATAFRAME
+# ============================================================
+
+customers = pd.DataFrame({
+
+    "Customer_ID": customer_id,
+
+    "Age": age,
+
+    "Tenure_Months": tenure_months,
+
+    "Monthly_Charges": monthly_charges,
+
+    "Support_Tickets": support_tickets,
+
+    "Website_Visits": website_visits,
+
+    "Payment_Delays": payment_delay,
+
+    "Contract_Type": contract_type,
+
+    "Internet_Service": internet_service,
+
+    "Churn": churn
+
+})
+
+
+# ============================================================
+# STEP 5: ADD MISSING VALUES
+# ============================================================
+
+# Adding missing values intentionally so that
+# we can demonstrate missing-data handling.
+
+missing_columns = [
+
+    "Age",
+    "Monthly_Charges",
+    "Support_Tickets",
+    "Internet_Service"
+
+]
+
+
+for column in missing_columns:
+
+    missing_indices = np.random.choice(
+
+        customers.index,
+
+        size=20,
+
+        replace=False
+
+    )
+
+    customers.loc[
+        missing_indices,
+        column
+    ] = np.nan
+
+
+# ============================================================
+# STEP 6: SAVE ORIGINAL DATASET
+# ============================================================
+
+customers.to_csv(
+    "customer_churn_data.csv",
+    index=False
+)
+
+
+print("=" * 70)
+print("CUSTOMER CHURN PREDICTION")
+print("=" * 70)
+
+
+print("\nDataset created successfully!")
+
+
+# ============================================================
+# STEP 7: DISPLAY DATASET
+# ============================================================
+
+print("\nFirst 10 rows of dataset:")
+
+print(
+    customers.head(10)
+)
+
+
+print("\nDataset Shape:")
+
+print(
+    customers.shape
+)
+
+
+# ============================================================
+# STEP 8: CHECK MISSING VALUES
+# ============================================================
+
+print("\n" + "=" * 70)
+print("MISSING VALUE CHECK")
+print("=" * 70)
+
+
+print(
+    customers.isnull().sum()
+)
+
+
+# ============================================================
+# STEP 9: FEATURE ENGINEERING
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FEATURE ENGINEERING")
+print("=" * 70)
+
+
+# Total amount paid by customer
+
+customers["Total_Charges"] = (
+
+    customers["Monthly_Charges"]
+
+    *
+
+    customers["Tenure_Months"]
+
+)
+
+
+# Support tickets per month
+
+customers["Tickets_Per_Month"] = (
+
+    customers["Support_Tickets"]
+
+    /
+
+    customers["Tenure_Months"]
+
+)
+
+
+print(
+    "\nNew features created:"
+)
+
+print(
+    "1. Total_Charges"
+)
+
+print(
+    "2. Tickets_Per_Month"
+)
+
+
+# ============================================================
+# STEP 10: SEPARATE FEATURES AND TARGET
+# ============================================================
+
+X = customers.drop(
+
+    columns=[
+        "Customer_ID",
+        "Churn"
+    ]
+
+)
+
+
+y = customers["Churn"]
+
+
+print("\nFeatures used for prediction:")
+
+print(
+    X.columns.tolist()
+)
+
+
+# ============================================================
+# STEP 11: TRAIN TEST SPLIT
+# ============================================================
+
+print("\n" + "=" * 70)
+print("TRAIN / TEST SPLIT")
+print("=" * 70)
+
+
+X_train, X_test, y_train, y_test = train_test_split(
+
+    X,
+
+    y,
+
+    test_size=0.20,
+
+    random_state=42,
+
+    stratify=y
+
+)
+
+
+print(
+    "\nTotal records:",
+    len(X)
+)
+
+
+print(
+    "Training records:",
+    len(X_train)
+)
+
+
+print(
+    "Testing records:",
+    len(X_test)
+)
+
+
+# ============================================================
+# STEP 12: DEFINE FEATURES
+# ============================================================
+
+numerical_features = [
+
+    "Age",
+
+    "Tenure_Months",
+
+    "Monthly_Charges",
+
+    "Support_Tickets",
+
+    "Website_Visits",
+
+    "Payment_Delays",
+
+    "Total_Charges",
+
+    "Tickets_Per_Month"
+
+]
+
+
+categorical_features = [
+
+    "Contract_Type",
+
+    "Internet_Service"
+
+]
+
+
+# ============================================================
+# STEP 13: NUMERICAL PREPROCESSING PIPELINE
+# ============================================================
+
+numerical_pipeline = Pipeline([
+
+    (
+
+        "imputer",
+
+        SimpleImputer(
+            strategy="median"
+        )
+
+    ),
+
+    (
+
+        "scaler",
+
+        StandardScaler()
+
+    )
+
+])
+
+
+# ============================================================
+# STEP 14: CATEGORICAL PREPROCESSING PIPELINE
+# ============================================================
+
+categorical_pipeline = Pipeline([
+
+    (
+
+        "imputer",
+
+        SimpleImputer(
+            strategy="most_frequent"
+        )
+
+    ),
+
+    (
+
+        "encoder",
+
+        OneHotEncoder(
+            handle_unknown="ignore"
+        )
+
+    )
+
+])
+
+
+# ============================================================
+# STEP 15: COMBINE PREPROCESSING
+# ============================================================
+
+preprocessor = ColumnTransformer([
+
+    (
+
+        "numerical",
+
+        numerical_pipeline,
+
+        numerical_features
+
+    ),
+
+    (
+
+        "categorical",
+
+        categorical_pipeline,
+
+        categorical_features
+
+    )
+
+])
+
+
+# ============================================================
+# STEP 16: COMPLETE MACHINE LEARNING PIPELINE
+# ============================================================
+
+model_pipeline = Pipeline([
+
+    (
+
+        "preprocessing",
+
+        preprocessor
+
+    ),
+
+    (
+
+        "model",
+
+        LogisticRegression(
+            max_iter=1000
+        )
+
+    )
+
+])
+
+
+print("\n" + "=" * 70)
+print("PIPELINE CREATED")
+print("=" * 70)
+
+
+print(
+    "\nPipeline steps:"
+)
+
+print(
+    "1. Missing value handling"
+)
+
+print(
+    "2. Feature scaling"
+)
+
+print(
+    "3. Categorical encoding"
+)
+
+print(
+    "4. Logistic Regression"
+)
+
+
+# ============================================================
+# STEP 17: TRAIN MODEL
+# ============================================================
+
+print("\n" + "=" * 70)
+print("MODEL TRAINING")
+print("=" * 70)
+
+
+model_pipeline.fit(
+
+    X_train,
+
+    y_train
+
+)
+
+
+print(
+    "\nLogistic Regression model trained successfully!"
+)
+
+
+# ============================================================
+# STEP 18: MAKE PREDICTIONS
+# ============================================================
+
+y_pred = model_pipeline.predict(
+
+    X_test
+
+)
+
+
+# Probability of customer churn
+
+y_probability = (
+
+    model_pipeline
+    .predict_proba(X_test)[:, 1]
+
+)
+
+
+# ============================================================
+# STEP 19: MODEL EVALUATION
+# ============================================================
+
+print("\n" + "=" * 70)
+print("MODEL EVALUATION")
+print("=" * 70)
+
+
+accuracy = accuracy_score(
+
+    y_test,
+
+    y_pred
+
+)
+
+
+precision = precision_score(
+
+    y_test,
+
+    y_pred,
+
+    zero_division=0
+
+)
+
+
+recall = recall_score(
+
+    y_test,
+
+    y_pred,
+
+    zero_division=0
+
+)
+
+
+f1 = f1_score(
+
+    y_test,
+
+    y_pred,
+
+    zero_division=0
+
+)
+
+
+roc_auc = roc_auc_score(
+
+    y_test,
+
+    y_probability
+
+)
+
+
+print(
+    "\nAccuracy:",
+    round(accuracy, 4)
+)
+
+
+print(
+    "Precision:",
+    round(precision, 4)
+)
+
+
+print(
+    "Recall:",
+    round(recall, 4)
+)
+
+
+print(
+    "F1 Score:",
+    round(f1, 4)
+)
+
+
+print(
+    "ROC-AUC:",
+    round(roc_auc, 4)
+)
+
+
+# ============================================================
+# STEP 20: CONFUSION MATRIX
+# ============================================================
+
+print("\n" + "=" * 70)
+print("CONFUSION MATRIX")
+print("=" * 70)
+
+
+cm = confusion_matrix(
+
+    y_test,
+
+    y_pred
+
+)
+
+
+print("\n                Predicted")
+
+print(
+    "             Not Churn   Churn"
+)
+
+print(
+    "Actual"
+)
+
+print(
+    f"Not Churn      {cm[0][0]:5d}     {cm[0][1]:5d}"
+)
+
+print(
+    f"Churn          {cm[1][0]:5d}     {cm[1][1]:5d}"
+)
+
+
+# ============================================================
+# STEP 21: EXPLAIN CONFUSION MATRIX
+# ============================================================
+
+print("\nConfusion Matrix Explanation:")
+
+print(
+    "True Negative  (TN):",
+    cm[0][0]
+)
+
+print(
+    "False Positive (FP):",
+    cm[0][1]
+)
+
+print(
+    "False Negative (FN):",
+    cm[1][0]
+)
+
+print(
+    "True Positive  (TP):",
+    cm[1][1]
+)
+
+
+# ============================================================
+# STEP 22: CLASSIFICATION REPORT
+# ============================================================
+
+print("\n" + "=" * 70)
+print("CLASSIFICATION REPORT")
+print("=" * 70)
+
+
+print(
+
+    classification_report(
+
+        y_test,
+
+        y_pred,
+
+        target_names=[
+            "Not Churn",
+            "Churn"
+        ],
+
+        zero_division=0
+
+    )
+
+)
+
+
+# ============================================================
+# STEP 23: CROSS VALIDATION
+# ============================================================
+
+print("\n" + "=" * 70)
+print("5-FOLD CROSS VALIDATION")
+print("=" * 70)
+
+
+cv = StratifiedKFold(
+
+    n_splits=5,
+
+    shuffle=True,
+
+    random_state=42
+
+)
+
+
+cv_scores = cross_val_score(
+
+    model_pipeline,
+
+    X_train,
+
+    y_train,
+
+    cv=cv,
+
+    scoring="accuracy"
+
+)
+
+
+print(
+    "\nCross-validation results:"
+)
+
+
+for i, score in enumerate(
+
+    cv_scores,
+
+    start=1
+
+):
+
+    print(
+
+        f"Fold {i}: {score:.4f}"
+
+    )
+
+
+print(
+    "\nAverage CV Accuracy:",
+    round(
+        cv_scores.mean(),
+        4
+    )
+)
+
+
+print(
+    "CV Standard Deviation:",
+    round(
+        cv_scores.std(),
+        4
+    )
+)
+
+
+# ============================================================
+# STEP 24: MODEL INTERPRETATION
+# ============================================================
+
+print("\n" + "=" * 70)
+print("MODEL INTERPRETATION")
+print("=" * 70)
+
+
+# Get feature names after preprocessing
+
+feature_names = (
+
+    model_pipeline
+    .named_steps["preprocessing"]
+    .get_feature_names_out()
+
+)
+
+
+# Get Logistic Regression coefficients
+
+coefficients = (
+
+    model_pipeline
+    .named_steps["model"]
+    .coef_[0]
+
+)
+
+
+feature_importance = pd.DataFrame({
+
+    "Feature":
+        feature_names,
+
+    "Coefficient":
+        coefficients
+
+})
+
+
+feature_importance[
+    "Absolute_Coefficient"
+] = (
+
+    abs(
+        feature_importance[
+            "Coefficient"
+        ]
+    )
+
+)
+
+
+feature_importance = (
+
+    feature_importance
+
+    .sort_values(
+
+        "Absolute_Coefficient",
+
+        ascending=False
+
+    )
+
+)
+
+
+print(
+    "\nTop 10 influential features:"
+)
+
+
+print(
+
+    feature_importance[
+        [
+            "Feature",
+            "Coefficient"
+        ]
+    ].head(10)
+
+)
+
+
+# ============================================================
+# STEP 25: INTERPRETATION OF COEFFICIENTS
+# ============================================================
+
+print("\n" + "=" * 70)
+print("COEFFICIENT INTERPRETATION")
+print("=" * 70)
+
+
+print(
+    "\nPositive coefficient → increases churn probability"
+)
+
+print(
+    "Negative coefficient → decreases churn probability"
+)
+
+
+# ============================================================
+# STEP 26: FINAL SUMMARY
+# ============================================================
+
+print("\n" + "=" * 70)
+print("FINAL PROJECT SUMMARY")
+print("=" * 70)
+
+
+print(
+    "\nProject: Customer Churn Prediction"
+)
+
+
+print(
+    "Algorithm: Logistic Regression"
+)
+
+
+print(
+    "\nTraining Records:",
+    len(X_train)
+)
+
+
+print(
+    "Testing Records:",
+    len(X_test)
+)
+
+
+print(
+    "\nAccuracy:",
+    round(
+        accuracy,
+        4
+    )
+)
+
+
+print(
+    "Precision:",
+    round(
+        precision,
+        4
+    )
+)
+
+
+print(
+    "Recall:",
+    round(
+        recall,
+        4
+    )
+)
+
+
+print(
+    "F1 Score:",
+    round(
+        f1,
+        4
+    )
+)
+
+
+print(
+    "ROC-AUC:",
+    round(
+        roc_auc,
+        4
+    )
+)
+
+
+print(
+    "\nAverage 5-Fold CV Accuracy:",
+    round(
+        cv_scores.mean(),
+        4
+    )
+)
+
+
+print("\n" + "=" * 70)
+print("PROJECT COMPLETED SUCCESSFULLY")
+print("=" * 70)
